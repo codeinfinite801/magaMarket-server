@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 const app = express();
 
@@ -24,10 +24,28 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    await client.connect();
 
     // U can start create a new API for Database
+    const database = client.db("megaMarketDB");
+    const booksCollection = database.collection("books");
+    const electronicsCollection = database.collection("electronics");
 
+    // books related api
+    app.get('/allBooks', async (req, res) => {
+      const result = await booksCollection.find().toArray();
+      res.send(result)
+    })
+    app.get('/allBooks/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await booksCollection.findOne(query);
+      res.send(result)
+    })
+
+
+    // electronics device related api
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
@@ -37,7 +55,7 @@ async function run() {
     // await client.close();
   }
 }
-run().catch(console.dir);
+run().catch(console.log);
 
 
 app.get("/", (req, res) => {
