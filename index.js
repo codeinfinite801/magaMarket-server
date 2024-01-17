@@ -42,6 +42,17 @@ async function run() {
       const result = await booksCollection.findOne(query);
       res.send(result)
     })
+    // books related api
+    app.get('/allElectronics', async (req, res) => {
+      const result = await electronicsCollection.find().toArray();
+      res.send(result)
+    })
+    app.get('/allElectronics/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await electronicsCollection.findOne(query);
+      res.send(result)
+    })
 
 
     // electronics device related api
