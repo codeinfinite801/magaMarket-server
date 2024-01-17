@@ -30,6 +30,7 @@ async function run() {
     const database = client.db("megaMarketDB");
     const booksCollection = database.collection("books");
     const electronicsCollection = database.collection("electronics");
+    const addProductsCollection = database.collection("addProducts");
 
     // books related api
     app.get('/allBooks', async (req, res) => {
@@ -42,9 +43,44 @@ async function run() {
       const result = await booksCollection.findOne(query);
       res.send(result)
     })
-
-
     // electronics device related api
+    app.get('/allElectronics', async (req, res) => {
+      const result = await electronicsCollection.find().toArray();
+      res.send(result)
+    })
+    app.get('/allElectronics/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await electronicsCollection.findOne(query);
+      res.send(result)
+    })
+
+    // add product related api
+    app.get("/addProducts", async (req, res) => {
+      let query = {};
+      if (req?.query?.email) {
+        query = { email: req?.query?.email }
+      }
+      const result = await addProductsCollection.find(query).toArray();
+      res.send(result)
+    })
+
+
+    app.get('/addProducts/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await addProductsCollection.findOne(query)
+      res.send(result)
+    })
+
+    app.post('/addProducts/:id', async (req, res) => {
+      const book = req.body;
+      const result = await addProductsCollection.insertOne(book)
+      res.send(result)
+    })
+
+
+    
     
 
     // Send a ping to confirm a successful connection
