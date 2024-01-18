@@ -29,12 +29,22 @@ async function run() {
     // U can start create a new API for Database
     const database = client.db("megaMarketDB");
     const booksCollection = database.collection("books");
+    const categoriesCollection = database.collection("category");
     const electronicsCollection = database.collection("electronics");
     const addProductsCollection = database.collection("addProducts");
+    // category related api
+    app.get('/category' , async(req , res)=>{
+      const result = await categoriesCollection.find().toArray();
+      res.send(result)
+    })
 
     // books related api
     app.get('/allBooks', async (req, res) => {
-      const result = await booksCollection.find().toArray();
+      let query = {};
+      if (req?.query?.category) {
+          query = { category: req?.query?.category }
+      }
+      const result = await booksCollection.find(query).toArray();
       res.send(result)
     })
     app.get('/allBooks/:id', async (req, res) => {
@@ -43,6 +53,7 @@ async function run() {
       const result = await booksCollection.findOne(query);
       res.send(result)
     })
+
     // electronics device related api
     app.get('/allElectronics', async (req, res) => {
       const result = await electronicsCollection.find().toArray();
