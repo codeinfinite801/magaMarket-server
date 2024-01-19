@@ -32,9 +32,25 @@ async function run() {
     const categoriesCollection = database.collection("category");
     const electronicsCollection = database.collection("electronics");
     const addProductsCollection = database.collection("addProducts");
+    const authorCollection = database.collection("author");
+    const superstoreCollection = database.collection("superstore");
     // category related api
     app.get('/category' , async(req , res)=>{
       const result = await categoriesCollection.find().toArray();
+      res.send(result)
+    })
+
+
+   
+    // author related api
+    app.get('/author' , async(req , res)=>{
+      const result = await authorCollection.find().toArray();
+      res.send(result)
+
+   // Super store Category related api
+    })
+    app.get('/superstore' , async(req , res)=>{
+      const result = await superstoreCollection.find().toArray();
       res.send(result)
     })
 
