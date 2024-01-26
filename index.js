@@ -1,9 +1,9 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
-const app = express();
 
 // Middleware
 app.use(cors());
@@ -24,17 +24,41 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     // U can start create a new API for Database
     const database = client.db("megaMarketDB");
     const booksCollection = database.collection("books");
     const categoriesCollection = database.collection("category");
+    const kidsCategoriesCollection = database.collection("kidsCategory");
+    const kidsZoneCollection = database.collection("kidsZone");
     const electronicsCollection = database.collection("electronics");
     const addProductsCollection = database.collection("addProducts");
+    const authorCollection = database.collection("author");
+    const superstoreCollection = database.collection("superstore");
     // category related api
-    app.get('/category' , async(req , res)=>{
+    app.get('/category', async (req, res) => {
       const result = await categoriesCollection.find().toArray();
+      res.send(result)
+    })
+
+    // kids category related api
+    app.get('/kidsCategory', async (req, res) => {
+      const result = await kidsCategoriesCollection.find().toArray();
+      res.send(result)
+    })
+
+
+
+    // author related api
+    app.get('/author', async (req, res) => {
+      const result = await authorCollection.find().toArray();
+      res.send(result)
+
+      // Super store Category related api
+    })
+    app.get('/superstore', async (req, res) => {
+      const result = await superstoreCollection.find().toArray();
       res.send(result)
     })
 
@@ -42,15 +66,30 @@ async function run() {
     app.get('/allBooks', async (req, res) => {
       let query = {};
       if (req?.query?.category) {
-          query = { category: req?.query?.category }
+        query = { category: req?.query?.category }
       }
       const result = await booksCollection.find(query).toArray();
       res.send(result)
     })
     app.get('/allBooks/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await booksCollection.findOne(query);
+      res.send(result)
+    })
+    // kids related api
+    app.get('/kidsZone', async (req, res) => {
+      let query = {};
+      if (req?.query?.category) {
+        query = { category: req?.query?.category }
+      }
+      const result = await kidsZoneCollection.find(query).toArray();
+      res.send(result)
+    })
+    app.get('/kidsZone/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await kidsZoneCollection.findOne(query);
       res.send(result)
     })
 
@@ -61,7 +100,7 @@ async function run() {
     })
     app.get('/allElectronics/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await electronicsCollection.findOne(query);
       res.send(result)
     })
@@ -89,13 +128,63 @@ async function run() {
       const result = await addProductsCollection.insertOne(book)
       res.send(result)
     })
+    app.delete('/addProducts/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await addProductsCollection.deleteOne(query);
+      res.send(result)
+    })
 
 
-    
-    
+
+    // add product increase or decrease related api
+    // increment 
+    app.put('/addProducts/:id/increment', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const currentProduct = await addProductsCollection.findOne(query);
+
+      if (!currentProduct) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      const updatedCount = currentProduct?.count + 1;
+      const newTotalPrice = updatedCount * currentProduct?.discountedPrice;
+      const quantity = currentProduct?.quantity - 1 ;
+      const result = await addProductsCollection.findOneAndUpdate(
+        query,
+        { $set: { count: updatedCount, priceWithDiscount: newTotalPrice , quantity : quantity} },
+        { returnDocument: 'after' }
+      );
+      res.json(result);
+    });
+
+    // decrement 
+    app.put('/addProducts/:id/decrement' , async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const currentProduct = await addProductsCollection.findOne(query);
+
+      if (!currentProduct) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      const updatedCount = currentProduct?.count - 1;
+      const newTotalPrice = updatedCount * currentProduct?.discountedPrice;
+      const quantity = currentProduct?.quantity + 1 ;
+      const result = await addProductsCollection.findOneAndUpdate(
+        query,
+        { $set: { count: updatedCount, priceWithDiscount: newTotalPrice , quantity : quantity} },
+        { returnDocument: 'after' }
+      );
+      res.json(result);
+    });
+
+
+
+
+
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
     // Ensures that the client will close when you finish/error
