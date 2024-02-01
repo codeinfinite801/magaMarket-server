@@ -38,6 +38,9 @@ async function run() {
     const authorCollection = database.collection("author");
     const superstoreCollection = database.collection("superstore");
     const paymentCollection = database.collection("payments");
+    const reviewCollection = database.collection("reviews");
+
+
     // category related api
     app.get('/category', async (req, res) => {
       const result = await categoriesCollection.find().toArray();
@@ -210,6 +213,20 @@ async function run() {
       );
       res.json(result);
     });
+
+
+    // review related api
+    app.get('/review/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await reviewCollection.findOne(query);
+      res.send(result)
+    })
+    app.post('/review' , async(req , res)=>{
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review).toArray();
+      res.send(result)
+    })
 
 
 
