@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
@@ -36,6 +37,10 @@ async function run() {
     const addProductsCollection = database.collection("addProducts");
     const authorCollection = database.collection("author");
     const superstoreCollection = database.collection("superstore");
+    const paymentCollection = database.collection("payments");
+    const reviewCollection = database.collection("reviews");
+
+
     // category related api
     app.get('/category', async (req, res) => {
       const result = await categoriesCollection.find().toArray();
@@ -47,9 +52,6 @@ async function run() {
       const result = await kidsCategoriesCollection.find().toArray();
       res.send(result)
     })
-
-
-
     // author related api
     app.get('/author', async (req, res) => {
       const result = await authorCollection.find().toArray();
@@ -135,6 +137,40 @@ async function run() {
       res.send(result)
     })
 
+    // payment intent
+    app.post("/create-payment-intent", async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 1000);
+    
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"]
+      });
+    
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    });
+
+    // payment related api
+    app.post('/payments' , async(req , res)=>{
+      const payment = req.body;
+      const paymentResult = await paymentCollection.insertOne(payment)
+      const query = {_id : {
+        $in : payment.cartIds?.map(id => new ObjectId(id))
+      }}
+      const deleteResult = await addProductsCollection.deleteMany(query)
+      res.send({paymentResult , deleteResult})
+    })
+    app.get("/payments", async (req, res) => {
+      let query = {};
+      if (req?.query?.email) {
+        query = { email: req?.query?.email }
+      }
+      const result = await paymentCollection.find(query).toArray();
+      res.send(result)
+    })
 
 
     // add product increase or decrease related api
@@ -179,7 +215,18 @@ async function run() {
     });
 
 
-
+    // review related api
+    app.get('/review/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await reviewCollection.findOne(query);
+      res.send(result)
+    })
+    app.post('/review' , async(req , res)=>{
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review).toArray();
+      res.send(result)
+    })
 
 
 
