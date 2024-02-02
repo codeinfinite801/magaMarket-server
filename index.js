@@ -66,18 +66,55 @@ async function run() {
 
     // books related api
     app.get('/allBooks', async (req, res) => {
-      let query = {};
-      if (req?.query?.category) {
-        query = { category: req?.query?.category }
+<<<<<<< HEAD
+=======
+
+>>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
+      
+      const query = {};
+      const sortObj = {};
+
+      const categorys = req.query.categorys;
+      const authorName = req.query.author_name;
+      const sortField = req.query.sortField;
+      const sortOrder = req.query.sortOrder;
+
+      if (categorys) {
+        query.categorys = categorys;
       }
-      const result = await booksCollection.find(query).toArray();
-      res.send(result)
+
+      if (authorName) {
+        query.authors = authorName;
+      }
+
+      if (sortField && sortOrder) {
+        sortObj[sortField] = sortOrder;
+      }
+
+      try {
+        let cursor;
+
+        if (categorys && authorName) {
+          cursor = await booksCollection.find({ $and: [query, { authors: authorName }] }).sort(sortObj);
+        } else {
+          cursor = await booksCollection.find(query).sort(sortObj);
+        }
+
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+        res.status(500).send('Internal Server Error');
+      }
+<<<<<<< HEAD
+=======
     })
     app.get('/allBooks/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await booksCollection.findOne(query);
       res.send(result)
+>>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
     })
     // kids related api
     app.get('/kidsZone', async (req, res) => {
@@ -232,7 +269,10 @@ async function run() {
     })
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
