@@ -66,6 +66,44 @@ async function run() {
 
     // books related api
     app.get('/allBooks', async (req, res) => {
+<<<<<<< HEAD
+      
+      const query = {};
+      const sortObj = {};
+
+      const categorys = req.query.categorys;
+      const authorName = req.query.author_name;
+      const sortField = req.query.sortField;
+      const sortOrder = req.query.sortOrder;
+
+      if (categorys) {
+        query.categorys = categorys;
+      }
+
+      if (authorName) {
+        query.authors = authorName;
+      }
+
+      if (sortField && sortOrder) {
+        sortObj[sortField] = sortOrder;
+      }
+
+      try {
+        let cursor;
+
+        if (categorys && authorName) {
+          cursor = await booksCollection.find({ $and: [query, { authors: authorName }] }).sort(sortObj);
+        } else {
+          cursor = await booksCollection.find(query).sort(sortObj);
+        }
+
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+        res.status(500).send('Internal Server Error');
+      }
+=======
       let query = {};
       if (req?.query?.category) {
         query = { category: req?.query?.category }
@@ -78,6 +116,7 @@ async function run() {
       const query = { _id: new ObjectId(id) }
       const result = await booksCollection.findOne(query);
       res.send(result)
+>>>>>>> 14624450e31611369ffe978d7dc27f283800288e
     })
     // kids related api
     app.get('/kidsZone', async (req, res) => {
@@ -229,6 +268,11 @@ async function run() {
     })
 
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> 14624450e31611369ffe978d7dc27f283800288e
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
