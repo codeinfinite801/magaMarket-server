@@ -214,7 +214,10 @@ async function run() {
       res.json(result);
     });
 
-
+    app.get('/review', async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result)
+    })
     // review related api
     app.get('/review/:id', async (req, res) => {
       const id = req.params.id;
