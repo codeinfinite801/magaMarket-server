@@ -66,6 +66,10 @@ async function run() {
 
     // books related api
     app.get('/allBooks', async (req, res) => {
+<<<<<<< HEAD
+=======
+
+>>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
       
       const query = {};
       const sortObj = {};
@@ -102,6 +106,15 @@ async function run() {
         console.error('Error fetching books:', error);
         res.status(500).send('Internal Server Error');
       }
+<<<<<<< HEAD
+=======
+    })
+    app.get('/allBooks/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await booksCollection.findOne(query);
+      res.send(result)
+>>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
     })
     // kids related api
     app.get('/kidsZone', async (req, res) => {
@@ -253,7 +266,10 @@ async function run() {
     })
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
