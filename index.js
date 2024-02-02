@@ -33,25 +33,49 @@ async function run() {
     const electronicsCollection = database.collection("electronics");
     const addProductsCollection = database.collection("addProducts");
     // category related api
-    app.get('/category' , async(req , res)=>{
+    app.get('/category', async (req, res) => {
       const result = await categoriesCollection.find().toArray();
       res.send(result)
     })
 
     // books related api
     app.get('/allBooks', async (req, res) => {
-      let query = {};
-      if (req?.query?.category) {
-          query = { category: req?.query?.category }
+      
+      const query = {};
+      const sortObj = {};
+
+      const categorys = req.query.categorys;
+      const authorName = req.query.author_name;
+      const sortField = req.query.sortField;
+      const sortOrder = req.query.sortOrder;
+
+      if (categorys) {
+        query.categorys = categorys;
       }
-      const result = await booksCollection.find(query).toArray();
-      res.send(result)
-    })
-    app.get('/allBooks/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = {_id : new ObjectId(id)}
-      const result = await booksCollection.findOne(query);
-      res.send(result)
+
+      if (authorName) {
+        query.authors = authorName;
+      }
+
+      if (sortField && sortOrder) {
+        sortObj[sortField] = sortOrder;
+      }
+
+      try {
+        let cursor;
+
+        if (categorys && authorName) {
+          cursor = await booksCollection.find({ $and: [query, { authors: authorName }] }).sort(sortObj);
+        } else {
+          cursor = await booksCollection.find(query).sort(sortObj);
+        }
+
+        const result = await cursor.toArray();
+        res.send(result);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+        res.status(500).send('Internal Server Error');
+      }
     })
 
     // electronics device related api
@@ -61,7 +85,7 @@ async function run() {
     })
     app.get('/allElectronics/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)}
+      const query = { _id: new ObjectId(id) }
       const result = await electronicsCollection.findOne(query);
       res.send(result)
     })
@@ -91,8 +115,8 @@ async function run() {
     })
 
 
-    
-    
+
+
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
