@@ -66,7 +66,7 @@ async function run() {
 
     // books related api
     app.get('/allBooks', async (req, res) => {
-<<<<<<< HEAD
+
       
       const query = {};
       const sortObj = {};
@@ -103,20 +103,12 @@ async function run() {
         console.error('Error fetching books:', error);
         res.status(500).send('Internal Server Error');
       }
-=======
-      let query = {};
-      if (req?.query?.category) {
-        query = { category: req?.query?.category }
-      }
-      const result = await booksCollection.find(query).toArray();
-      res.send(result)
     })
     app.get('/allBooks/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
       const result = await booksCollection.findOne(query);
       res.send(result)
->>>>>>> 14624450e31611369ffe978d7dc27f283800288e
     })
     // kids related api
     app.get('/kidsZone', async (req, res) => {
@@ -267,12 +259,6 @@ async function run() {
       res.send(result)
     })
 
-
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 14624450e31611369ffe978d7dc27f283800288e
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
