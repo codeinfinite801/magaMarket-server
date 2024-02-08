@@ -264,11 +264,16 @@ async function run() {
       const result = await reviewCollection.findOne(query);
       res.send(result)
     })
-    app.post('/review' , async(req , res)=>{
+    app.post('/review', async (req, res) => {
       const review = req.body;
-      const result = await reviewCollection.insertOne(review).toArray();
-      res.send(result)
-    })
+      try {
+        const result = await reviewCollection.insertOne(review);
+        res.send(result);
+      } catch (error) {
+        console.error("Error inserting review:", error);
+        res.status(500).send("Internal Server Error");
+      }
+    });
 
 
     // Send a ping to confirm a successful connection
