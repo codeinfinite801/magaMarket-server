@@ -3,14 +3,25 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "http://localhost:5174",
+      "http://localhost:5175",
+      "https://mega-market-6295e.web.app",
+      "https://mega-market-6295e.firebaseapp.com",
+    ],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
-// MongoDB database connection 
+// MongoDB database connection
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@cluster0.n9v3wxy.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -19,7 +30,7 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -40,37 +51,31 @@ async function run() {
     const paymentCollection = database.collection("payments");
     const reviewCollection = database.collection("reviews");
 
-
     // category related api
-    app.get('/category', async (req, res) => {
+    app.get("/category", async (req, res) => {
       const result = await categoriesCollection.find().toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     // kids category related api
-    app.get('/kidsCategory', async (req, res) => {
+    app.get("/kidsCategory", async (req, res) => {
       const result = await kidsCategoriesCollection.find().toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
     // author related api
-    app.get('/author', async (req, res) => {
+    app.get("/author", async (req, res) => {
       const result = await authorCollection.find().toArray();
-      res.send(result)
+      res.send(result);
 
       // Super store Category related api
-    })
-    app.get('/superstore', async (req, res) => {
+    });
+    app.get("/superstore", async (req, res) => {
       const result = await superstoreCollection.find().toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     // books related api
-    app.get('/allBooks', async (req, res) => {
-<<<<<<< HEAD
-=======
-
->>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
-      
+    app.get("/allBooks", async (req, res) => {
       const query = {};
       const sortObj = {};
 
@@ -95,7 +100,9 @@ async function run() {
         let cursor;
 
         if (categorys && authorName) {
-          cursor = await booksCollection.find({ $and: [query, { authors: authorName }] }).sort(sortObj);
+          cursor = await booksCollection
+            .find({ $and: [query, { authors: authorName }] })
+            .sort(sortObj);
         } else {
           cursor = await booksCollection.find(query).sort(sortObj);
         }
@@ -103,183 +110,204 @@ async function run() {
         const result = await cursor.toArray();
         res.send(result);
       } catch (error) {
-        console.error('Error fetching books:', error);
-        res.status(500).send('Internal Server Error');
+        console.error("Error fetching books:", error);
+        res.status(500).send("Internal Server Error");
       }
-<<<<<<< HEAD
-=======
-    })
-    app.get('/allBooks/:id', async (req, res) => {
+    });
+    app.get("/allBooks/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) };
       const result = await booksCollection.findOne(query);
-      res.send(result)
->>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
-    })
+      res.send(result);
+    });
     // kids related api
-    app.get('/kidsZone', async (req, res) => {
+    app.get("/kidsZone", async (req, res) => {
       let query = {};
       if (req?.query?.category) {
-        query = { category: req?.query?.category }
+        query = { category: req?.query?.category };
       }
       const result = await kidsZoneCollection.find(query).toArray();
-      res.send(result)
-    })
-    app.get('/kidsZone/:id', async (req, res) => {
+      res.send(result);
+    });
+    app.get("/kidsZone/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) };
       const result = await kidsZoneCollection.findOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     // electronics device related api
-    app.get('/allElectronics', async (req, res) => {
+    app.get("/allElectronics", async (req, res) => {
       const result = await electronicsCollection.find().toArray();
-      res.send(result)
-    })
-    app.get('/allElectronics/:id', async (req, res) => {
+      res.send(result);
+    });
+    app.get("/allElectronics/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) };
       const result = await electronicsCollection.findOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     // add product related api
     app.get("/addProducts", async (req, res) => {
       let query = {};
       if (req?.query?.email) {
-        query = { email: req?.query?.email }
+        query = { email: req?.query?.email };
       }
       const result = await addProductsCollection.find(query).toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
-
-    app.get('/addProducts/:id', async (req, res) => {
+    app.get("/addProducts/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
-      const result = await addProductsCollection.findOne(query)
-      res.send(result)
-    })
+      const query = { _id: new ObjectId(id) };
+      const result = await addProductsCollection.findOne(query);
+      res.send(result);
+    });
 
-    app.post('/addProducts/:id', async (req, res) => {
+    app.post("/addProducts/:id", async (req, res) => {
       const book = req.body;
-      const result = await addProductsCollection.insertOne(book)
-      res.send(result)
-    })
-    app.delete('/addProducts/:id', async (req, res) => {
+      const result = await addProductsCollection.insertOne(book);
+      res.send(result);
+    });
+    app.delete("/addProducts/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await addProductsCollection.deleteOne(query);
-      res.send(result)
-    })
+      res.send(result);
+    });
 
     // payment intent
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 1000);
-    
+
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: "usd",
-        payment_method_types: ["card"]
+        payment_method_types: ["card"],
       });
-    
+
       res.send({
         clientSecret: paymentIntent.client_secret,
       });
     });
 
     // payment related api
-    app.post('/payments' , async(req , res)=>{
+
+    app.post("/payments", async (req, res) => {
       const payment = req.body;
-      const paymentResult = await paymentCollection.insertOne(payment)
-      const query = {_id : {
-        $in : payment.cartIds?.map(id => new ObjectId(id))
-      }}
-      const deleteResult = await addProductsCollection.deleteMany(query)
-      res.send({paymentResult , deleteResult})
-    })
+      const paymentResult = await paymentCollection.insertOne(payment);
+      const query = {
+        _id: {
+          $in: payment.cartIds?.map((id) => new ObjectId(id)),
+        },
+      };
+      const deleteResult = await addProductsCollection.deleteMany(query);
+      res.send({ paymentResult, deleteResult });
+    });
+    // status update routes here
+    app.patch("/update-status", async (req, res) => {
+      const id = req.query.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "Confirm",
+        },
+      };
+      const result = await paymentCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
     app.get("/payments", async (req, res) => {
       let query = {};
       if (req?.query?.email) {
-        query = { email: req?.query?.email }
+        query = { email: req?.query?.email };
       }
       const result = await paymentCollection.find(query).toArray();
-      res.send(result)
-    })
-
+      res.send(result);
+    });
 
     // add product increase or decrease related api
-    // increment 
-    app.put('/addProducts/:id/increment', async (req, res) => {
+    // increment
+    app.put("/addProducts/:id/increment", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const currentProduct = await addProductsCollection.findOne(query);
 
       if (!currentProduct) {
-        return res.status(404).json({ error: 'Product not found' });
+        return res.status(404).json({ error: "Product not found" });
       }
       const updatedCount = currentProduct?.count + 1;
       const newTotalPrice = updatedCount * currentProduct?.discountedPrice;
-      const quantity = currentProduct?.quantity - 1 ;
+      const quantity = currentProduct?.quantity - 1;
       const result = await addProductsCollection.findOneAndUpdate(
         query,
-        { $set: { count: updatedCount, priceWithDiscount: newTotalPrice , quantity : quantity} },
-        { returnDocument: 'after' }
+        {
+          $set: {
+            count: updatedCount,
+            priceWithDiscount: newTotalPrice,
+            quantity: quantity,
+          },
+        },
+        { returnDocument: "after" }
       );
       res.json(result);
     });
 
-    // decrement 
-    app.put('/addProducts/:id/decrement' , async (req, res) => {
+    // decrement
+    app.put("/addProducts/:id/decrement", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const currentProduct = await addProductsCollection.findOne(query);
 
       if (!currentProduct) {
-        return res.status(404).json({ error: 'Product not found' });
+        return res.status(404).json({ error: "Product not found" });
       }
       const updatedCount = currentProduct?.count - 1;
       const newTotalPrice = updatedCount * currentProduct?.discountedPrice;
-      const quantity = currentProduct?.quantity + 1 ;
+      const quantity = currentProduct?.quantity + 1;
       const result = await addProductsCollection.findOneAndUpdate(
         query,
-        { $set: { count: updatedCount, priceWithDiscount: newTotalPrice , quantity : quantity} },
-        { returnDocument: 'after' }
+        {
+          $set: {
+            count: updatedCount,
+            priceWithDiscount: newTotalPrice,
+            quantity: quantity,
+          },
+        },
+        { returnDocument: "after" }
       );
       res.json(result);
     });
 
-
+    app.get("/review", async (req, res) => {
+      const result = await reviewCollection.find().toArray();
+      res.send(result);
+    });
     // review related api
-    app.get('/review/:id', async (req, res) => {
+    app.get("/review/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) };
       const result = await reviewCollection.findOne(query);
-      res.send(result)
-    })
-    app.post('/review' , async(req , res)=>{
+      res.send(result);
+    });
+    app.post("/review", async (req, res) => {
       const review = req.body;
       const result = await reviewCollection.insertOne(review).toArray();
-      res.send(result)
-    })
+      res.send(result);
+    });
 
-
-<<<<<<< HEAD
-
-=======
->>>>>>> cddb953fd4dfee423f8eee23578aa4767be35113
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
   }
 }
 run().catch(console.log);
-
 
 app.get("/", (req, res) => {
   res.send("MegaMarket Server is Running");
