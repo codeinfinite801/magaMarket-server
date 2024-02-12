@@ -173,10 +173,16 @@ async function run() {
       const result = await booksCollection.findOne(query);
       res.send(result);
     });
+    app.post('/allBooks', async (req, res) => {
+      const book = req.body;
+      const result = await booksCollection.insertOne(book)
+      res.send(result)
+    })
+
 
     // online books related api
     app.get('/onlineBooks', async (req, res) => {
-      const result = await onlineBooksCollection.find(query).toArray();
+      const result = await onlineBooksCollection.find().toArray();
       res.send(result)
     })
     app.get('/onlineBooks/:id', async (req, res) => {
