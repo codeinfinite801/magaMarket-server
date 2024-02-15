@@ -308,6 +308,18 @@ async function run() {
       const result = await paymentCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+    // delivered api
+    app.patch("/delivery-status", async (req, res) => {
+      const id = req.query.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "Delivered",
+        },
+      };
+      const result = await paymentCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
     // delete api
     app.delete("/paymentData/delete", async (req, res) => {
       const id = req.query.id;
