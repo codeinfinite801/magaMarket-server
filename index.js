@@ -52,6 +52,7 @@ async function run() {
     const superstoreCollection = database.collection("superstore");
     const paymentCollection = database.collection("payments");
     const reviewCollection = database.collection("reviews");
+    const wishListCollection = database.collection("wishLists");
 
     // user related api
     app.get("/users", async (req, res) => {
@@ -91,7 +92,22 @@ async function run() {
       }
       res.send({ admin });
     });
-
+    // wishList related api
+    app.get("/wishList", async (req, res) => {
+      const result = await wishListCollection.find().toArray();
+      res.send(result);
+    });
+    app.post("/wishList", async (req, res) => {
+      const product = req.body;
+      const result = await wishListCollection.insertOne(product);
+      res.send(result);
+    });
+    app.delete("/wishList/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishListCollection.deleteOne(query);
+      res.send(result);
+    });
     // category related api
     app.get("/category", async (req, res) => {
       const result = await categoriesCollection.find().toArray();
@@ -303,6 +319,18 @@ async function run() {
       const updateDoc = {
         $set: {
           status: "Confirm",
+        },
+      };
+      const result = await paymentCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+    // delivered api
+    app.patch("/delivery-status", async (req, res) => {
+      const id = req.query.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "Delivered",
         },
       };
       const result = await paymentCollection.updateOne(filter, updateDoc);
