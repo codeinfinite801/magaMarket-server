@@ -54,6 +54,37 @@ async function run() {
     const reviewCollection = database.collection("reviews");
     const wishListCollection = database.collection("wishLists");
 
+    // all count data for admin dashboard
+
+    app.get("/count-data", async (req, res) => {
+      const totalBooks = await booksCollection.countDocuments();
+      const totalElectronics = await electronicsCollection.countDocuments();
+      const totalKids = await kidsZoneCollection.countDocuments();
+      const other = await superstoreCollection.countDocuments();
+      const TotalUser = await usersCollection.countDocuments();
+      const aggregationResult = await paymentCollection
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              totalPrice: { $sum: "$price" },
+            },
+          },
+        ])
+        .toArray();
+      const totalPrice =
+        aggregationResult.length > 0 ? aggregationResult[0].totalPrice : 0;
+
+      res.send({
+        Books: totalBooks,
+        electronics: totalElectronics,
+        kidsItem: totalKids,
+        othersItem: other,
+        user: TotalUser,
+        totalPrice, 
+      });
+    });
+
     // user related api
     app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
