@@ -81,7 +81,7 @@ async function run() {
         kidsItem: totalKids,
         othersItem: other,
         user: TotalUser,
-        totalPrice,
+        totalPrice, 
       });
     });
 
