@@ -54,6 +54,43 @@ async function run() {
     const reviewCollection = database.collection("reviews");
 
 
+    // Search Api
+    app.get('/search', async (req, res) => {
+      const { category } = req?.query;
+      console.log(category)
+      let combinedResults = []
+
+      try {
+        if (category === 'All') {
+          const [result1, result2, result3] = await Promise.all([
+            booksCollection.find().toArray(),
+            kidsZoneCollection.find().toArray(),
+            electronicsCollection.find().toArray()
+          ]);
+
+          combinedResults = [...result1, ...result2, ...result3]
+        } else if (category === 'Books') {
+          const [book1, book2] = await Promise.all([
+            booksCollection.find().toArray()
+          ]);
+
+          combinedResults = [...book1, ...book2,];
+        } else if (category === 'SuperStore') {
+          const [product] = await Promise.all([
+            electronicsCollection.find().toArray()
+            ,]);
+
+          combinedResults = [...product,]
+        }
+
+        res.send(combinedResults);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        res.status(500).send('Internal Server Error');
+      }
+    });
+
+
     // user related api
     app.get('/users', async (req, res) => {
       const result = await usersCollection.find().toArray();
@@ -396,7 +433,7 @@ async function run() {
       res.send(result);
     });
 
-    
+
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
