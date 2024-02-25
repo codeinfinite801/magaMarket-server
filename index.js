@@ -67,13 +67,12 @@ async function run() {
             kidsZoneCollection.find().toArray(),
             electronicsCollection.find().toArray()
           ]);
-
           combinedResults = [...result1, ...result2, ...result3]
+
         } else if (category === 'Books') {
           const [book1, book2] = await Promise.all([
             booksCollection.find().toArray()
           ]);
-
           combinedResults = [...book1, ...book2,];
         } else if (category === 'SuperStore') {
           const [product] = await Promise.all([
