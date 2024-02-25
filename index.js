@@ -52,64 +52,114 @@ async function run() {
     const superstoreCollection = database.collection("superstore");
     const paymentCollection = database.collection("payments");
     const reviewCollection = database.collection("reviews");
+    const wishListCollection = database.collection("wishLists");
 
+    // all count data for admin dashboard
+
+    app.get("/count-data", async (req, res) => {
+      const totalBooks = await booksCollection.countDocuments();
+      const totalElectronics = await electronicsCollection.countDocuments();
+      const totalKids = await kidsZoneCollection.countDocuments();
+      const other = await superstoreCollection.countDocuments();
+      const TotalUser = await usersCollection.countDocuments();
+      const aggregationResult = await paymentCollection
+        .aggregate([
+          {
+            $group: {
+              _id: null,
+              totalPrice: { $sum: "$price" },
+            },
+          },
+        ])
+        .toArray();
+      const totalPrice =
+        aggregationResult.length > 0 ? aggregationResult[0].totalPrice : 0;
+
+      res.send({
+        Books: totalBooks,
+        electronics: totalElectronics,
+        kidsItem: totalKids,
+        othersItem: other,
+        user: TotalUser,
+        totalPrice, 
+      });
+    });
 
     // user related api
-    app.get('/users', async (req, res) => {
+    app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
-      res.send(result)
-    })
-    app.post('/users', async (req, res) => {
+      res.send(result);
+    });
+    app.post("/users", async (req, res) => {
       const user = req.body;
-      const query = { email: user?.email }
-      const existingUser = await usersCollection.findOne(query)
+      const query = { email: user?.email };
+      const existingUser = await usersCollection.findOne(query);
       if (existingUser) {
-        return res.send({ massage: "user already exists" })
+        return res.send({ massage: "user already exists" });
       }
-      const result = await usersCollection.insertOne(user)
-      res.send(result)
-    })
-
-
-
+      const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+    // update user
+    app.patch("/users/update", async (req, res) => {
+      const id = req.query.id;
+      const query = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await usersCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
     // Admin related api
-    app.get('/users/admin/:email', async (req, res) => {
-      const email = req.params.email;
+    app.get("/users/admin", async (req, res) => {
+      const email = req.query.email;
       const query = { email: email };
-      const user = await usersCollection.findOne(query)
+      const user = await usersCollection.findOne(query);
       let admin = false;
       if (user) {
-        admin = user?.role === 'admin';
+        admin = user?.role === "admin";
       }
-      res.send({ admin })
-    })
-
-
-
+      res.send({ admin });
+    });
+    // wishList related api
+    app.get("/wishList", async (req, res) => {
+      const result = await wishListCollection.find().toArray();
+      res.send(result);
+    });
+    app.post("/wishList", async (req, res) => {
+      const product = req.body;
+      const result = await wishListCollection.insertOne(product);
+      res.send(result);
+    });
+    app.delete("/wishList/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await wishListCollection.deleteOne(query);
+      res.send(result);
+    });
     // category related api
     app.get("/category", async (req, res) => {
       const result = await categoriesCollection.find().toArray();
       res.send(result);
     });
-    app.post('/category', async (req, res) => {
+    app.post("/category", async (req, res) => {
       const category = req.body;
-      const result = await categoriesCollection.insertOne(category)
-      res.send(result)
-    })
-
-
+      const result = await categoriesCollection.insertOne(category);
+      res.send(result);
+    });
 
     // kids category related api
     app.get("/kidsCategory", async (req, res) => {
       const result = await kidsCategoriesCollection.find().toArray();
       res.send(result);
     });
-    app.post('/kidsCategory', async (req, res) => {
+    app.post("/kidsCategory", async (req, res) => {
       const category = req.body;
-      const result = await kidsCategoriesCollection.insertOne(category)
-      res.send(result)
-    })
-
+      const result = await kidsCategoriesCollection.insertOne(category);
+      res.send(result);
+    });
 
     // author related api
     app.get("/author", async (req, res) => {
@@ -122,11 +172,11 @@ async function run() {
       const result = await superstoreCollection.find().toArray();
       res.send(result);
     });
-    app.post('/superstore', async (req, res) => {
+    app.post("/superstore", async (req, res) => {
       const category = req.body;
-      const result = await superstoreCollection.insertOne(category)
-      res.send(result)
-    })
+      const result = await superstoreCollection.insertOne(category);
+      res.send(result);
+    });
 
     // books related api
     app.get("/allBooks", async (req, res) => {
@@ -173,25 +223,28 @@ async function run() {
       const result = await booksCollection.findOne(query);
       res.send(result);
     });
+    app.post("/allBooks", async (req, res) => {
+      const book = req.body;
+      const result = await booksCollection.insertOne(book);
+      res.send(result);
+    });
 
     // online books related api
-    app.get('/onlineBooks', async (req, res) => {
-      const result = await onlineBooksCollection.find(query).toArray();
-      res.send(result)
-    })
-    app.get('/onlineBooks/:id', async (req, res) => {
+    app.get("/onlineBooks", async (req, res) => {
+      const result = await onlineBooksCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/onlineBooks/:id", async (req, res) => {
       const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
+      const query = { _id: new ObjectId(id) };
       const result = await onlineBooksCollection.findOne(query);
-      res.send(result)
-    })
-    app.post('/onlineBooks', async (req, res) => {
+      res.send(result);
+    });
+    app.post("/onlineBooks", async (req, res) => {
       const book = req.body;
-      const result = await onlineBooksCollection.insertOne(book)
-      res.send(result)
-    })
-
-
+      const result = await onlineBooksCollection.insertOne(book);
+      res.send(result);
+    });
 
     // kids related api
     app.get("/kidsZone", async (req, res) => {
@@ -208,13 +261,11 @@ async function run() {
       const result = await kidsZoneCollection.findOne(query);
       res.send(result);
     });
-    app.post('/kidsZone', async (req, res) => {
+    app.post("/kidsZone", async (req, res) => {
       const product = req.body;
-      const result = await kidsZoneCollection.insertOne(product)
-      res.send(result)
-    })
-
-
+      const result = await kidsZoneCollection.insertOne(product);
+      res.send(result);
+    });
 
     // electronics device related api
     app.get("/allElectronics", async (req, res) => {
@@ -227,13 +278,11 @@ async function run() {
       const result = await electronicsCollection.findOne(query);
       res.send(result);
     });
-    app.post('/allElectronics', async (req, res) => {
+    app.post("/allElectronics", async (req, res) => {
       const product = req.body;
-      const result = await electronicsCollection.insertOne(product)
-      res.send(result)
-    })
-
-
+      const result = await electronicsCollection.insertOne(product);
+      res.send(result);
+    });
 
     // add product related api
     app.get("/addProducts", async (req, res) => {
@@ -264,8 +313,6 @@ async function run() {
       res.send(result);
     });
 
-
-
     // payment intent
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
@@ -282,8 +329,6 @@ async function run() {
       });
     });
 
-
-
     // payment related api
 
     app.post("/payments", async (req, res) => {
@@ -298,7 +343,6 @@ async function run() {
       res.send({ paymentResult, deleteResult });
     });
 
-
     // status update routes here
     app.patch("/update-status", async (req, res) => {
       const id = req.query.id;
@@ -311,6 +355,26 @@ async function run() {
       const result = await paymentCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
+    // delivered api
+    app.patch("/delivery-status", async (req, res) => {
+      const id = req.query.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: "Delivered",
+        },
+      };
+      const result = await paymentCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+    // delete api
+    app.delete("/paymentData/delete", async (req, res) => {
+      const id = req.query.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await paymentCollection.deleteOne(query);
+      res.send(result);
+    });
+    // all payment data get api
     app.get("/payments", async (req, res) => {
       let query = {};
       if (req?.query?.email) {
@@ -320,7 +384,10 @@ async function run() {
       res.send(result);
     });
 
-
+    app.get("/allPaymentData", async (req, res) => {
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
+    });
 
     // add product increase or decrease related api
     // increment
@@ -348,8 +415,6 @@ async function run() {
       );
       res.json(result);
     });
-
-
 
     // decrement
     app.put("/addProducts/:id/decrement", async (req, res) => {
@@ -382,7 +447,6 @@ async function run() {
       res.send(result);
     });
 
-
     // review related api
     app.get("/review/:id", async (req, res) => {
       const id = req.params.id;
@@ -395,8 +459,6 @@ async function run() {
       const result = await reviewCollection.insertOne(review).toArray();
       res.send(result);
     });
-
-    
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
