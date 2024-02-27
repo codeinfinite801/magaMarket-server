@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const compression = require('compression');
 const app = express();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -20,6 +21,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(compression());
 
 // MongoDB database connection
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@cluster0.n9v3wxy.mongodb.net/?retryWrites=true&w=majority`;
@@ -81,7 +83,7 @@ async function run() {
         kidsItem: totalKids,
         othersItem: other,
         user: TotalUser,
-        totalPrice, 
+        totalPrice,
       });
     });
 
@@ -180,42 +182,14 @@ async function run() {
 
     // books related api
     app.get("/allBooks", async (req, res) => {
-      const query = {};
-      const sortObj = {};
-      const categorys = req.query.categorys;
-      const authorName = req.query.author_name;
-      const sortField = req.query.sortField;
-      const sortOrder = req.query.sortOrder;
-
-      if (categorys) {
-        query.categorys = categorys;
+      let query = {};
+      const category = req.query.category;
+      if (category) {
+        query.category = category;
       }
-
-      if (authorName) {
-        query.authors = authorName;
-      }
-
-      if (sortField && sortOrder) {
-        sortObj[sortField] = sortOrder;
-      }
-
-      try {
-        let cursor;
-
-        if (categorys && authorName) {
-          cursor = await booksCollection
-            .find({ $and: [query, { authors: authorName }] })
-            .sort(sortObj);
-        } else {
-          cursor = await booksCollection.find(query).sort(sortObj);
-        }
-
-        const result = await cursor.toArray();
-        res.send(result);
-      } catch (error) {
-        console.error("Error fetching books:", error);
-        res.status(500).send("Internal Server Error");
-      }
+      const result = await booksCollection.find(query).toArray();
+      // const result = await booksCollection.find().toArray();
+      res.send(result);
     });
     app.get("/allBooks/:id", async (req, res) => {
       const id = req.params.id;
