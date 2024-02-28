@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const compression = require('compression');
+const compression = require("compression");
 const app = express();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -39,7 +39,6 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
-
     // U can start create a new API for Database
     const database = client.db("megaMarketDB");
     const usersCollection = database.collection("users");
@@ -179,28 +178,48 @@ async function run() {
       const result = await superstoreCollection.insertOne(category);
       res.send(result);
     });
-
+    // new publish book api
+    app.get("/newPublish/books", async (req, res) => {
+      try {
+        const result = await booksCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.log("Not connect in books collections");
+      }
+    });
     // books related api
     app.get("/allBooks", async (req, res) => {
-      let query = {};
-      const category = req.query.category;
-      if (category) {
-        query.category = category;
+      try {
+        let query = {};
+        const category = req.query.category;
+        if (category) {
+          query.category = category;
+        }
+        const result = await booksCollection.find(query).toArray();
+        // const result = await booksCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.log("Something is error for getting all books");
       }
-      const result = await booksCollection.find(query).toArray();
-      // const result = await booksCollection.find().toArray();
-      res.send(result);
     });
     app.get("/allBooks/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await booksCollection.findOne(query);
-      res.send(result);
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await booksCollection.findOne(query);
+        res.send(result);
+      } catch (error) {
+        console.log("Error single books");
+      }
     });
     app.post("/allBooks", async (req, res) => {
-      const book = req.body;
-      const result = await booksCollection.insertOne(book);
-      res.send(result);
+      try {
+        const book = req.body;
+        const result = await booksCollection.insertOne(book);
+        res.send(result);
+      } catch (error) {
+        console.log("error in allBooks post api ");
+      }
     });
 
     // online books related api
