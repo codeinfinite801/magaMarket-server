@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const compression = require("compression");
 const app = express();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -20,6 +21,7 @@ app.use(
   })
 );
 app.use(express.json());
+app.use(compression());
 
 // MongoDB database connection
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@cluster0.n9v3wxy.mongodb.net/?retryWrites=true&w=majority`;
@@ -37,7 +39,6 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
-
     // U can start create a new API for Database
     const database = client.db("megaMarketDB");
     const usersCollection = database.collection("users");
@@ -81,7 +82,7 @@ async function run() {
         kidsItem: totalKids,
         othersItem: other,
         user: TotalUser,
-        totalPrice, 
+        totalPrice,
       });
     });
 
@@ -177,56 +178,48 @@ async function run() {
       const result = await superstoreCollection.insertOne(category);
       res.send(result);
     });
-
-    // books related api
-    app.get("/allBooks", async (req, res) => {
-      const query = {};
-      const sortObj = {};
-      const categorys = req.query.categorys;
-      const authorName = req.query.author_name;
-      const sortField = req.query.sortField;
-      const sortOrder = req.query.sortOrder;
-
-      if (categorys) {
-        query.categorys = categorys;
-      }
-
-      if (authorName) {
-        query.authors = authorName;
-      }
-
-      if (sortField && sortOrder) {
-        sortObj[sortField] = sortOrder;
-      }
-
+    // new publish book api
+    app.get("/newPublish/books", async (req, res) => {
       try {
-        let cursor;
-
-        if (categorys && authorName) {
-          cursor = await booksCollection
-            .find({ $and: [query, { authors: authorName }] })
-            .sort(sortObj);
-        } else {
-          cursor = await booksCollection.find(query).sort(sortObj);
-        }
-
-        const result = await cursor.toArray();
+        const result = await booksCollection.find().toArray();
         res.send(result);
       } catch (error) {
-        console.error("Error fetching books:", error);
-        res.status(500).send("Internal Server Error");
+        console.log("Not connect in books collections");
+      }
+    });
+    // books related api
+    app.get("/allBooks", async (req, res) => {
+      try {
+        let query = {};
+        const category = req.query.category;
+        if (category) {
+          query.category = category;
+        }
+        const result = await booksCollection.find(query).toArray();
+        // const result = await booksCollection.find().toArray();
+        res.send(result);
+      } catch (error) {
+        console.log("Something is error for getting all books");
       }
     });
     app.get("/allBooks/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await booksCollection.findOne(query);
-      res.send(result);
+      try {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id) };
+        const result = await booksCollection.findOne(query);
+        res.send(result);
+      } catch (error) {
+        console.log("Error single books");
+      }
     });
     app.post("/allBooks", async (req, res) => {
-      const book = req.body;
-      const result = await booksCollection.insertOne(book);
-      res.send(result);
+      try {
+        const book = req.body;
+        const result = await booksCollection.insertOne(book);
+        res.send(result);
+      } catch (error) {
+        console.log("error in allBooks post api ");
+      }
     });
 
     // online books related api
