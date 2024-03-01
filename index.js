@@ -227,7 +227,7 @@ async function run() {
       }
     });
     // books related api
-    app.get("/allBooks", verifyToken,async (req, res) => {
+    app.get("/allBooks",async (req, res) => {
       try {
         let query = {};
         const category = req.query.category;
