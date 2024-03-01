@@ -227,7 +227,7 @@ async function run() {
       }
     });
     // books related api
-    app.get("/allBooks", async (req, res) => {
+    app.get("/allBooks", verifyToken,async (req, res) => {
       try {
         let query = {};
         const category = req.query.category;
@@ -258,7 +258,7 @@ async function run() {
         console.log("Error single books");
       }
     });
-    app.post("/allBooks", async (req, res) => {
+    app.post("/allBooks",verifyToken, async (req, res) => {
       try {
         const book = req.body;
         const result = await booksCollection.insertOne(book);
