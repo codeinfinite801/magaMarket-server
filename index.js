@@ -3,6 +3,8 @@ const cors = require("cors");
 require("dotenv").config();
 const compression = require("compression");
 const app = express();
+const jwt = require('jsonwebtoken')
+const cookieParser = require('cookie-parser')
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
@@ -22,6 +24,23 @@ app.use(
 );
 app.use(express.json());
 app.use(compression());
+app.use(cookieParser())
+
+
+// verify token
+const verifyToken = (req, res, next) => {
+  const token = req.cookies?.token;
+  if (!token) {
+    return res.status(401).send({ massage: 'unauthorized access' })
+  }
+  jwt.verify(token, process.env.ACCESS_API_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ massage: 'unauthorized access' })
+    }
+    req.user = decoded ;
+    next()
+  })
+}
 
 // MongoDB database connection
 const uri = `mongodb+srv://${process.env.USER_NAME}:${process.env.PASSWORD}@cluster0.n9v3wxy.mongodb.net/?retryWrites=true&w=majority`;
@@ -54,6 +73,26 @@ async function run() {
     const paymentCollection = database.collection("payments");
     const reviewCollection = database.collection("reviews");
     const wishListCollection = database.collection("wishLists");
+
+
+     // auth related api
+     app.post('/jwt', async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_API_SECRET, { expiresIn: '1h' })
+      res
+        .cookie('token', token, {
+          httpOnly: true,
+          secure: true,
+          sameSite: 'none',
+          maxAge : 60 * 60 * 1000
+        })
+        .send({ success: true })
+    })
+
+    app.post('/logout', async (req, res) => {
+      const user = req.body;
+      res.clearCookie('token', { maxAge: 0 , secure : true , sameSite : 'none' } ).send({ success: true })
+    })
 
     // all count data for admin dashboard
 
