@@ -192,14 +192,21 @@ async function run() {
       try {
         let query = {};
         const category = req.query.category;
+        const authorName = req.query.author_name;
+        
         if (category) {
           query.category = category;
         }
+        
+        if (authorName) {
+          query.author_name = authorName;
+        }
+        
         const result = await booksCollection.find(query).toArray();
-        // const result = await booksCollection.find().toArray();
         res.send(result);
       } catch (error) {
-        console.log("Something is error for getting all books");
+        console.log("Something went wrong while getting all books:", error);
+        res.status(500).send("Internal server error");
       }
     });
     app.get("/allBooks/:id", async (req, res) => {
